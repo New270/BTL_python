@@ -1,0 +1,70 @@
+{% extends 'shared/base.html' %}
+{% block title %}Đặt lịch hẹn — MediCare{% endblock %}
+{% block page_title %}Đặt lịch hẹn mới{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:800px">
+  <div class="card-header">
+    <i class="fas fa-calendar-plus" style="color:var(--primary)"></i>
+    <span class="card-title">Thông tin lịch hẹn</span>
+  </div>
+  <div class="card-body">
+    <form method="POST">
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>Chọn Bệnh nhân <span class="req">*</span></label>
+          <select name="patient_id" required>
+            <option value="">-- Chọn Bệnh nhân --</option>
+            {% for p in patients %}
+            <option value="{{ p.id }}" {% if request.args.get('patient_id')|int == p.id %}selected{% endif %}>
+              {{ p.patient_code }} — {{ p.full_name }} ({{ p.phone or 'Không có SĐT' }})
+            </option>
+            {% endfor %}
+          </select>
+          <span class="form-hint">Nếu chưa có, vui lòng <a href="{{ url_for('receptionist.new_patient') }}">tạo hồ sơ bệnh nhân</a> trước.</span>
+        </div>
+
+        <div class="form-group">
+          <label>Bác sĩ phụ trách <span class="req">*</span></label>
+          <select name="doctor_id" required>
+            <option value="">-- Chọn Bác sĩ --</option>
+            {% for d in doctors %}
+            <option value="{{ d.id }}">{{ d.full_name }} ({{ d.specialty or 'Đa khoa' }})</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Thời gian hẹn <span class="req">*</span></label>
+          <input type="datetime-local" name="scheduled_at" required />
+        </div>
+
+        <div class="form-group">
+          <label>Loại khám</label>
+          <select name="appt_type">
+            <option value="first_visit">Khám lần đầu</option>
+            <option value="revisit">Tái khám</option>
+            <option value="emergency">Cấp cứu</option>
+          </select>
+        </div>
+        
+        <div class="form-group full">
+          <label>Lý do khám / Triệu chứng</label>
+          <textarea name="chief_complaint" placeholder="VD: Đau bụng âm ỉ 2 ngày nay..." rows="2"></textarea>
+        </div>
+
+        <div class="form-group full">
+          <label>Ghi chú thêm</label>
+          <input type="text" name="notes" placeholder="Ghi chú nội bộ cho bác sĩ/trợ lý..."/>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <div style="display:flex;justify-content:flex-end;gap:12px">
+        <a href="{{ url_for('receptionist.appointments') }}" class="btn btn-outline">Hủy</a>
+        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Đặt lịch</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,67 @@
+{% extends 'shared/base.html' %}
+{% block title %}Danh sách Bệnh nhân — MediCare{% endblock %}
+{% block page_title %}Danh sách Bệnh nhân{% endblock %}
+
+{% block content %}
+<div class="card mb-4">
+  <div class="card-body" style="padding:16px 22px">
+    <form method="GET" style="display:flex;gap:12px;align-items:center">
+      <div style="position:relative;flex:1;max-width:480px">
+        <i class="fas fa-search" style="position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--text-muted)"></i>
+        <input type="text" name="q" value="{{ q or '' }}" placeholder="Tìm theo mã BN, họ tên, SĐT, CCCD..."
+               style="padding-left:38px" autofocus/>
+      </div>
+      <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i> Tìm</button>
+      {% if q %}<a href="{{ url_for('receptionist.patients') }}" class="btn btn-outline">Xóa lọc</a>{% endif %}
+      <a href="{{ url_for('receptionist.new_patient') }}" class="btn btn-accent" style="margin-left:auto">
+        <i class="fas fa-user-plus"></i> Tiếp nhận mới
+      </a>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Mã BN</th>
+          <th>Họ và Tên</th>
+          <th>Ngày sinh</th>
+          <th>Giới tính</th>
+          <th>Điện thoại</th>
+          <th>Thao tác</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% set p_list = patients.items if patients.items is defined else patients %}
+        
+        {% for p in p_list %}
+        <tr>
+          <td><span class="patient-code" style="font-size:0.85rem">{{ p.patient_code }}</span></td>
+          <td style="font-weight:600">{{ p.full_name }}</td>
+          <td>{{ p.dob.strftime('%d/%m/%Y') if p.dob else '—' }}</td>
+          <td>{{ p.gender_display }}</td>
+          <td>{{ p.phone or '—' }}</td>
+          <td>
+            <div style="display:flex;gap:6px">
+              <a href="{{ url_for('receptionist.patient_detail', patient_id=p.id) }}" class="btn btn-outline btn-sm btn-icon" title="Xem chi tiết">
+                <i class="fas fa-folder-open"></i>
+              </a>
+              <a href="{{ url_for('receptionist.edit_patient', patient_id=p.id) }}" class="btn btn-outline btn-sm btn-icon" title="Chỉnh sửa">
+                <i class="fas fa-edit"></i>
+              </a>
+              <a href="{{ url_for('receptionist.new_appointment') }}?patient_id={{ p.id }}" class="btn btn-primary btn-sm btn-icon" title="Đặt lịch khám">
+                <i class="fas fa-calendar-plus"></i>
+              </a>
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted)">Chưa có dữ liệu bệnh nhân nào.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

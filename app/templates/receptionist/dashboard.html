@@ -1,0 +1,142 @@
+{% extends 'shared/base.html' %}
+{% block title %}Dashboard Lễ tân — MediCare{% endblock %}
+{% block page_title %}Dashboard Lễ tân{% endblock %}
+
+{% block content %}
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-icon blue"><i class="fas fa-calendar-day"></i></div>
+    <div>
+      <div class="stat-val">{{ today_appts|length }}</div>
+      <div class="stat-label">Lịch hẹn hôm nay</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon orange"><i class="fas fa-hourglass-half"></i></div>
+    <div>
+      <div class="stat-val">{{ waiting|length }}</div>
+      <div class="stat-label">Đang chờ khám</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
+    <div>
+      <div class="stat-val">{{ completed|length }}</div>
+      <div class="stat-label">Đã khám xong</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon blue"><i class="fas fa-users"></i></div>
+    <div>
+      <div class="stat-val">{{ total_patients }}</div>
+      <div class="stat-label">Tổng bệnh nhân</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon red"><i class="fas fa-file-invoice-dollar"></i></div>
+    <div>
+      <div class="stat-val">{{ unpaid_invoices }}</div>
+      <div class="stat-label">Hóa đơn chưa thanh toán</div>
+    </div>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+  <!-- Hàng chờ hôm nay -->
+  <div class="card">
+    <div class="card-header" style="justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:10px">
+        <i class="fas fa-list-ol" style="color:var(--primary)"></i>
+        <span class="card-title">Hàng chờ hôm nay</span>
+      </div>
+      <a href="{{ url_for('receptionist.appointments') }}" class="btn btn-outline btn-sm">Xem tất cả</a>
+    </div>
+    <div class="card-body" style="padding:0">
+      {% if today_appts %}
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>STT</th><th>Bệnh nhân</th><th>Bác sĩ</th><th>Giờ</th><th>Trạng thái</th></tr></thead>
+          <tbody>
+          {% for a in today_appts[:8] %}
+          <tr>
+            <td><div class="queue-number" style="width:32px;height:32px;font-size:.9rem">{{ a.queue_number or '—' }}</div></td>
+            <td>
+              <div style="font-weight:600;font-size:.88rem">{{ a.patient.full_name }}</div>
+              <div class="patient-code" style="font-size:.73rem">{{ a.patient.patient_code }}</div>
+            </td>
+            <td style="font-size:.85rem">{{ a.doctor.full_name }}</td>
+            <td style="font-size:.85rem">{{ a.scheduled_at.strftime('%H:%M') }}</td>
+            <td>
+              {% if a.status == 'completed' %}<span class="badge badge-success">Xong</span>
+              {% elif a.status == 'in_progress' %}<span class="badge badge-info">Đang khám</span>
+              {% elif a.status == 'confirmed' %}<span class="badge badge-warning">Chờ</span>
+              {% elif a.status == 'cancelled' %}<span class="badge badge-danger">Hủy</span>
+              {% else %}<span class="badge badge-muted">{{ a.status }}</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div style="text-align:center;padding:40px;color:var(--text-muted)">
+        <i class="fas fa-calendar-times" style="font-size:2rem;margin-bottom:10px;display:block"></i>
+        Chưa có lịch hẹn nào hôm nay
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Thao tác nhanh -->
+  <div style="display:flex;flex-direction:column;gap:16px">
+    <div class="card">
+      <div class="card-header">
+        <i class="fas fa-bolt" style="color:var(--accent)"></i>
+        <span class="card-title">Thao tác nhanh</span>
+      </div>
+      <div class="card-body" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <a href="{{ url_for('receptionist.new_patient') }}" class="btn btn-primary" style="justify-content:center">
+          <i class="fas fa-user-plus"></i> Tiếp nhận BN
+        </a>
+        <a href="{{ url_for('receptionist.new_appointment') }}" class="btn btn-outline" style="justify-content:center">
+          <i class="fas fa-calendar-plus"></i> Đặt lịch hẹn
+        </a>
+        <a href="{{ url_for('receptionist.patients') }}" class="btn btn-outline" style="justify-content:center">
+          <i class="fas fa-search"></i> Tìm bệnh nhân
+        </a>
+        <a href="{{ url_for('receptionist.invoices') }}" class="btn btn-outline" style="justify-content:center">
+          <i class="fas fa-file-invoice"></i> Thu tiền
+        </a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <i class="fas fa-info-circle" style="color:var(--info)"></i>
+        <span class="card-title">Thông tin hôm nay</span>
+      </div>
+      <div class="card-body">
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:var(--bg);border-radius:8px">
+            <span style="font-size:.88rem;color:var(--text-muted)">📅 Ngày hôm nay</span>
+            <strong style="font-size:.88rem">{{ today.strftime('%d/%m/%Y') }}</strong>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:var(--bg);border-radius:8px">
+            <span style="font-size:.88rem;color:var(--text-muted)">⏳ Chờ khám</span>
+            <strong style="font-size:.88rem;color:var(--warning)">{{ waiting|length }} BN</strong>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:var(--bg);border-radius:8px">
+            <span style="font-size:.88rem;color:var(--text-muted)">🩺 Đang khám</span>
+            <strong style="font-size:.88rem;color:var(--info)">{{ in_progress|length }} ca</strong>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:var(--bg);border-radius:8px">
+            <span style="font-size:.88rem;color:var(--text-muted)">✅ Hoàn thành</span>
+            <strong style="font-size:.88rem;color:var(--success)">{{ completed|length }} ca</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,79 @@
+{% extends 'shared/base.html' %}
+{% block title %}Dashboard Bác sĩ — MediCare{% endblock %}
+{% block page_title %}Dashboard — {{ doctor.full_name }}{% endblock %}
+
+{% block content %}
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-icon orange"><i class="fas fa-hourglass-half"></i></div>
+    <div><div class="stat-val">{{ waiting|length }}</div><div class="stat-label">Bệnh nhân chờ khám</div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon blue"><i class="fas fa-stethoscope"></i></div>
+    <div><div class="stat-val">{{ in_progress|length }}</div><div class="stat-label">Đang khám</div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
+    <div><div class="stat-val">{{ completed|length }}</div><div class="stat-label">Đã khám xong hôm nay</div></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header" style="justify-content:space-between">
+    <div style="display:flex;align-items:center;gap:10px">
+      <i class="fas fa-list-ol" style="color:var(--primary)"></i>
+      <span class="card-title">Hàng chờ của bạn — {{ today.strftime('%d/%m/%Y') }}</span>
+    </div>
+    <a href="{{ url_for('doctor.queue') }}" class="btn btn-primary btn-sm"><i class="fas fa-play"></i> Bắt đầu khám</a>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>STT</th><th>Mã BN</th><th>Bệnh nhân</th><th>Loại khám</th><th>Lý do đến</th><th>Sinh hiệu</th><th>Trạng thái</th><th></th></tr></thead>
+      <tbody>
+        {% for a in today_appts %}
+        <tr>
+          <td><div class="queue-number">{{ a.queue_number or '?' }}</div></td>
+          <td><span class="patient-code">{{ a.patient.patient_code }}</span></td>
+          <td>
+            <div style="font-weight:600">{{ a.patient.full_name }}</div>
+            <div class="text-muted text-sm">{{ a.patient.age or '?' }} tuổi · {{ a.patient.gender_display }}</div>
+          </td>
+          <td><span class="badge badge-muted">{{ a.type_display }}</span></td>
+          <td style="font-size:.85rem;max-width:180px">{{ a.chief_complaint or '—' }}</td>
+          <td>
+            {% if a.medical_record and a.medical_record.vital_sign %}
+              {% set v = a.medical_record.vital_sign %}
+              <div class="text-sm">🌡 {{ v.temperature }}°C &nbsp; ❤️ {{ v.heart_rate }}/p</div>
+              <div class="text-sm">💉 {{ v.blood_pressure }} &nbsp; 📊 {{ v.spo2 }}%</div>
+            {% else %}
+              <span class="badge badge-warning">Chưa có</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if a.status == 'completed' %}<span class="badge badge-success">Xong</span>
+            {% elif a.status == 'in_progress' %}<span class="badge badge-info">Đang khám</span>
+            {% else %}<span class="badge badge-warning">Chờ</span>{% endif %}
+          </td>
+          <td>
+            {% if a.status != 'completed' and a.status != 'cancelled' %}
+            <form method="POST" action="{{ url_for('doctor.start_exam', appt_id=a.id) }}" style="display:inline">
+              <button class="btn btn-primary btn-sm"><i class="fas fa-stethoscope"></i> Khám</button>
+            </form>
+            {% elif a.medical_record %}
+            <a href="{{ url_for('doctor.view_record', record_id=a.medical_record.id) }}" class="btn btn-outline btn-sm">
+              <i class="fas fa-file-medical"></i> Xem BA
+            </a>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-muted)">
+          <i class="fas fa-calendar-check" style="font-size:2rem;display:block;margin-bottom:10px"></i>
+          Không có bệnh nhân nào hôm nay.
+        </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

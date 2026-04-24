@@ -1,0 +1,61 @@
+{% extends 'shared/base.html' %}
+{% block title %}Dashboard Trợ lý — MediCare{% endblock %}
+{% block page_title %}Công việc hôm nay{% endblock %}
+
+{% block content %}
+<div class="card mb-4">
+  <div class="card-header">
+    <i class="fas fa-clipboard-list" style="color:var(--primary)"></i>
+    <span class="card-title">Bệnh nhân chờ đo sinh hiệu — {{ today.strftime('%d/%m/%Y') }}</span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>STT</th>
+          <th>Bệnh nhân</th>
+          <th>Lý do đến khám</th>
+          <th>Bác sĩ phụ trách</th>
+          <th>Sinh hiệu</th>
+          <th>Thao tác</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in appts %}
+        <tr>
+          <td><div class="queue-number">{{ a.queue_number }}</div></td>
+          <td>
+            <div style="font-weight:600">{{ a.patient.full_name }}</div>
+            <div class="patient-code" style="font-size:.75rem">{{ a.patient.patient_code }}</div>
+          </td>
+          <td>{{ a.chief_complaint or '—' }}</td>
+          <td>{{ a.doctor.full_name }}</td>
+          <td>
+            {% if a.medical_record and a.medical_record.vital_sign %}
+              <span class="badge badge-success"><i class="fas fa-check"></i> Đã đo</span>
+            {% else %}
+              <span class="badge badge-warning"><i class="fas fa-exclamation"></i> Chưa đo</span>
+            {% endif %}
+          </td>
+          <td>
+            <div style="display:flex; gap:8px">
+              <a href="{{ url_for('assistant.enter_vitals', appt_id=a.id) }}" class="btn btn-outline btn-sm">
+                <i class="fas fa-heartbeat"></i> Sinh hiệu
+              </a>
+
+              {% if a.status in ['confirmed', 'in_progress'] %}
+              <a href="{{ url_for('assistant.scribe_record', appt_id=a.id) }}" class="btn btn-primary btn-sm">
+                <i class="fas fa-keyboard"></i> Gõ bệnh án hộ
+              </a>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted)">Không có bệnh nhân nào trong hàng chờ.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,77 @@
+{% extends 'shared/base.html' %}
+{% block title %}Lịch hẹn — MediCare{% endblock %}
+{% block page_title %}Quản lý Lịch hẹn{% endblock %}
+
+{% block content %}
+<div class="card mb-4">
+  <div class="card-body" style="padding:16px 22px; display:flex; justify-content:space-between; align-items:center">
+    <form method="GET" style="display:flex; gap:12px; align-items:center">
+      <label style="margin:0">Chọn ngày:</label>
+      <input type="date" name="date" value="{{ filter_date.strftime('%Y-%m-%d') }}" onchange="this.form.submit()" style="width:auto; padding:6px 12px">
+    </form>
+    <a href="{{ url_for('receptionist.new_appointment') }}" class="btn btn-primary">
+      <i class="fas fa-plus"></i> Đặt lịch hẹn mới
+    </a>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <i class="fas fa-calendar-alt" style="color:var(--primary)"></i>
+    <span class="card-title">Danh sách lịch hẹn — {{ filter_date.strftime('%d/%m/%Y') }}</span>
+    <span class="badge badge-primary" style="margin-left:8px">{{ appts|length }} lịch</span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>STT / Giờ</th>
+          <th>Bệnh nhân</th>
+          <th>Bác sĩ</th>
+          <th>Loại khám</th>
+          <th>Trạng thái</th>
+          <th>Thao tác</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in appts %}
+        <tr>
+          <td>
+            <div style="font-weight:700; font-size:1.1rem; color:var(--primary)">{{ a.queue_number or '—' }}</div>
+            <div class="text-sm text-muted">{{ a.scheduled_at.strftime('%H:%M') }}</div>
+          </td>
+          <td>
+            <div style="font-weight:600">{{ a.patient.full_name }}</div>
+            <div class="patient-code" style="font-size:.75rem; display:inline-block">{{ a.patient.patient_code }}</div>
+          </td>
+          <td>{{ a.doctor.full_name }}</td>
+          <td><span class="badge badge-muted">{{ a.type_display }}</span></td>
+          <td>
+            {% if a.status == 'completed' %}<span class="badge badge-success">Xong</span>
+            {% elif a.status == 'in_progress' %}<span class="badge badge-info">Đang khám</span>
+            {% elif a.status == 'confirmed' %}<span class="badge badge-warning">Đã check-in</span>
+            {% elif a.status == 'cancelled' %}<span class="badge badge-danger">Đã hủy</span>
+            {% else %}<span class="badge badge-muted">Chờ khám</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if a.status == 'pending' or a.status == 'confirmed' %}
+            <form method="POST" action="{{ url_for('receptionist.checkin', appt_id=a.id) }}" style="display:inline">
+              <button class="btn btn-outline btn-sm" title="Xác nhận đến khám"><i class="fas fa-check"></i> Check-in</button>
+            </form>
+            <form method="POST" action="{{ url_for('receptionist.cancel_appointment', appt_id=a.id) }}" style="display:inline" onsubmit="return confirm('Bạn có chắc chắn muốn hủy lịch này?');">
+              <button class="btn btn-danger btn-sm btn-icon" title="Hủy lịch"><i class="fas fa-times"></i></button>
+            </form>
+            {% else %}
+            —
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" style="text-align:center; padding:40px; color:var(--text-muted)">Không có lịch hẹn nào trong ngày này.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

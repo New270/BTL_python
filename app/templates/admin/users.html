@@ -1,0 +1,120 @@
+{% extends 'shared/base.html' %}
+{% block title %}Quản lý Tài khoản — MediCare{% endblock %}
+{% block page_title %}Danh sách Tài khoản Hệ thống{% endblock %}
+
+{% block content %}
+<style>
+  .nav-tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 10px; overflow-x: auto; }
+  .tab-btn { background: none; border: none; padding: 8px 16px; font-size: 0.9rem; font-weight: 600; color: var(--text-muted); cursor: pointer; border-radius: 8px; transition: all 0.2s; white-space: nowrap; }
+  .tab-btn:hover { background: var(--bg); color: var(--text); }
+  .tab-btn.active { background: var(--primary); color: #fff; }
+  .tab-pane { display: none; }
+  .tab-pane.active { display: block; }
+  .action-btns { display: flex; gap: 8px; }
+</style>
+
+<div class="card mb-6">
+  <div class="card-header" style="justify-content:space-between">
+    <div style="display:flex;align-items:center;gap:10px">
+      <i class="fas fa-users-cog" style="color:var(--primary)"></i>
+      <span class="card-title">Phân quyền & Tài khoản</span>
+    </div>
+    <a href="{{ url_for('admin.new_user') }}" class="btn btn-primary btn-sm">
+      <i class="fas fa-plus"></i> Thêm nhân sự mới
+    </a>
+  </div>
+  <div class="card-body">
+
+    <div class="nav-tabs">
+      <button class="tab-btn active" onclick="openTab(event, 'tab-pending')"><i class="fas fa-user-clock"></i> Chờ duyệt / Bị khóa</button>
+      <button class="tab-btn" onclick="openTab(event, 'tab-patient')">Bệnh nhân</button>
+      <button class="tab-btn" onclick="openTab(event, 'tab-doctor')">Bác sĩ</button>
+      <button class="tab-btn" onclick="openTab(event, 'tab-receptionist')">Lễ tân</button>
+      <button class="tab-btn" onclick="openTab(event, 'tab-assistant')">Trợ lý</button>
+      <button class="tab-btn" onclick="openTab(event, 'tab-admin')">Admin</button>
+    </div>
+
+    {% macro render_table(role_filter) %}
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>ID</th><th>Tên đăng nhập</th><th>Chủ sở hữu</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
+        <tbody>
+          {% set has_active = false %}
+          {% for u in users if u.role == role_filter and u.is_active %}
+          {% set has_active = true %}
+          <tr>
+            <td>#{{ u.id }}</td>
+            <td style="font-weight:600">{{ u.username }}</td>
+            <td>{{ u.get_display_name() }}</td>
+            <td><span class="badge badge-success">Hoạt động</span></td>
+            <td>
+              <div class="action-btns">
+                <a href="{{ url_for('admin.edit_user', user_id=u.id) }}" class="btn btn-outline btn-sm">
+                  <i class="fas fa-user-edit"></i> Xem & Sửa
+                </a>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+          {% if not has_active %}
+          <tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text-muted)">Không có tài khoản nào hoạt động.</td></tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+    {% endmacro %}
+
+    <div id="tab-pending" class="tab-pane active">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ID</th><th>Tên đăng nhập</th><th>Chủ sở hữu</th><th>Vai trò</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
+          <tbody>
+            {% set has_pending = false %}
+            {% for u in users if not u.is_active %}
+              {% set has_pending = true %}
+              <tr>
+                <td>#{{ u.id }}</td>
+                <td style="font-weight:600">{{ u.username }}</td>
+                <td>{{ u.get_display_name() }}</td>
+                <td><span class="badge badge-muted">{{ u.role }}</span></td>
+                <td><span class="badge badge-warning">Khóa / Chờ duyệt</span></td>
+                <td>
+                  <div class="action-btns">
+                    <form method="POST" action="{{ url_for('admin.approve_user', user_id=u.id) }}" style="display:inline;">
+                      <button class="btn btn-success btn-sm"><i class="fas fa-check"></i> Mở khóa</button>
+                    </form>
+                    <a href="{{ url_for('admin.edit_user', user_id=u.id) }}" class="btn btn-outline btn-sm">
+                      <i class="fas fa-user-edit"></i> Xem & Sửa
+                    </a>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+            {% if not has_pending %}
+            <tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text-muted)">Không có tài khoản nào bị khóa hoặc đang chờ duyệt.</td></tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="tab-patient" class="tab-pane">{{ render_table('patient') }}</div>
+    <div id="tab-doctor" class="tab-pane">{{ render_table('doctor') }}</div>
+    <div id="tab-receptionist" class="tab-pane">{{ render_table('receptionist') }}</div>
+    <div id="tab-assistant" class="tab-pane">{{ render_table('assistant') }}</div>
+    <div id="tab-admin" class="tab-pane">{{ render_table('admin') }}</div>
+
+  </div>
+</div>
+
+<script>
+  // Chức năng click để chuyển Tab
+  function openTab(evt, tabId) {
+    document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+
+    document.getElementById(tabId).classList.add('active');
+    evt.currentTarget.classList.add('active');
+  }
+</script>
+{% endblock %}

@@ -1,0 +1,73 @@
+{% extends 'shared/base.html' %}
+{% block title %}Thêm thuốc mới — MediCare{% endblock %}
+{% block page_title %}Khai báo Thuốc mới{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:900px">
+  <div class="card-header">
+    <i class="fas fa-plus-circle" style="color:var(--primary)"></i>
+    <span class="card-title">Thông tin Thuốc / Vật tư y tế</span>
+  </div>
+  <div class="card-body">
+    <form method="POST">
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>Tên thuốc (Biệt dược) <span class="req">*</span></label>
+          <input type="text" name="name" required placeholder="VD: Panadol Extra 500mg"/>
+        </div>
+        
+        <div class="form-group full">
+          <label>Hoạt chất chính</label>
+          <input type="text" name="active_ingredient" placeholder="VD: Paracetamol 500mg, Caffeine 65mg"/>
+        </div>
+
+        <div class="form-group">
+          <label>Dạng bào chế</label>
+          <input type="text" name="dosage_form" placeholder="VD: Viên nén, Dung dịch, Gói..."/>
+        </div>
+        
+        <div class="form-group">
+          <label>Đơn vị tính <span class="req">*</span></label>
+          <input type="text" name="unit" required placeholder="VD: Viên, Vỉ, Hộp, Chai..."/>
+        </div>
+
+        <div class="form-group">
+          <label>Hãng sản xuất</label>
+          <input type="text" name="manufacturer" placeholder="Tên công ty sản xuất"/>
+        </div>
+        
+        <div class="form-group">
+          <label>Hạn sử dụng</label>
+          <input type="date" name="expiry_date"/>
+        </div>
+
+        <div class="form-group">
+          <label>Giá bán (VNĐ) <span class="req">*</span></label>
+          <input type="number" name="price" required min="0" value="0" placeholder="VD: 5000"/>
+        </div>
+
+        <div class="form-group">
+          <label>Tồn kho ban đầu</label>
+          <input type="number" name="stock_quantity" min="0" value="0"/>
+        </div>
+
+        <div class="form-group">
+          <label>Cảnh báo sắp hết khi tồn kho dưới mức:</label>
+          <input type="number" name="min_stock_alert" min="1" value="10"/>
+        </div>
+
+        <div class="form-group full">
+          <label>Mô tả / Hướng dẫn sử dụng chung</label>
+          <textarea name="description" placeholder="Ghi chú về liều dùng, tác dụng phụ cơ bản..."></textarea>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <div style="display:flex;justify-content:flex-end;gap:12px">
+        <a href="{{ url_for('medicine.index') }}" class="btn btn-outline">Hủy</a>
+        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Lưu thông tin thuốc</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

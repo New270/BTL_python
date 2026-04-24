@@ -1,0 +1,33 @@
+{% extends 'shared/base.html' %}
+{% block title %}Lịch hẹn của tôi — MediCare{% endblock %}
+{% block page_title %}Tất cả Lịch hẹn{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <i class="fas fa-list" style="color:var(--primary)"></i> <span class="card-title">Lịch sử đặt khám</span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Ngày giờ</th><th>Bác sĩ</th><th>Lý do khám</th><th>Trạng thái</th></tr></thead>
+      <tbody>
+        {% for a in appts %}
+        <tr>
+          <td><strong>{{ a.scheduled_at.strftime('%d/%m/%Y %H:%M') }}</strong></td>
+          <td>{{ a.doctor.full_name if a.doctor else '—' }}</td>
+          <td>{{ a.chief_complaint or '—' }}</td>
+          <td>
+            {% if a.status == 'pending' %}<span class="badge badge-warning">Chờ xác nhận</span>
+            {% elif a.status == 'confirmed' %}<span class="badge badge-info">Đã xác nhận</span>
+            {% elif a.status == 'completed' %}<span class="badge badge-success">Đã khám</span>
+            {% else %}<span class="badge badge-muted">{{ a.status }}</span>{% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4" style="text-align:center;padding:30px;color:var(--text-muted)">Không có dữ liệu lịch hẹn.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

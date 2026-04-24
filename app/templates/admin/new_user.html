@@ -1,0 +1,107 @@
+{% extends 'shared/base.html' %}
+{% block title %}Tạo Tài khoản mới — MediCare{% endblock %}
+{% block page_title %}Cấp mới Tài khoản Nhân sự{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:700px">
+  <div class="card-header">
+    <i class="fas fa-user-plus" style="color:var(--primary)"></i>
+    <span class="card-title">Thông tin tài khoản</span>
+  </div>
+  <div class="card-body">
+    <form method="POST">
+      <div class="form-grid" style="margin-bottom:20px">
+        <div class="form-group full">
+          <label>Loại tài khoản (Vai trò) <span class="req">*</span></label>
+          <select name="role" id="roleSelect" required onchange="toggleFields()">
+            <option value="">-- Chọn vai trò --</option>
+            <option value="doctor">Bác sĩ</option>
+            <option value="receptionist">Lễ tân</option>
+            <option value="assistant">Trợ lý bác sĩ</option>
+            <option value="admin">Quản trị viên (Admin)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Tên đăng nhập <span class="req">*</span></label>
+          <input type="text" name="username" required placeholder="VD: bs_nguyenvan"/>
+        </div>
+        <div class="form-group">
+          <label>Mật khẩu <span class="req">*</span></label>
+          <input type="password" name="password" required placeholder="Nhập mật khẩu"/>
+        </div>
+      </div>
+
+      <div id="profileFields" style="display:none; padding-top:20px; border-top:1px solid var(--border)">
+        <h4 style="margin-bottom:16px;font-size:.95rem;color:var(--primary)">Thông tin Hồ sơ</h4>
+        <div class="form-grid">
+          <div class="form-group full">
+            <label>Họ và tên nhân viên <span class="req">*</span></label>
+            <input type="text" name="full_name" placeholder="Nguyễn Văn A" required/>
+          </div>
+          <div class="form-group">
+            <label>Số điện thoại</label>
+            <input type="text" name="phone"/>
+          </div>
+          
+          <div class="form-group doctor-only" style="display:none">
+            <label>Chuyên khoa</label>
+            <input type="text" name="specialty" placeholder="VD: Nội khoa"/>
+          </div>
+          <div class="form-group doctor-only" style="display:none">
+            <label>Số chứng chỉ hành nghề</label>
+            <input type="text" name="license_number"/>
+          </div>
+
+          <div class="form-group assistant-only full" style="display:none; background: var(--primary-lt); padding: 15px; border-radius: 8px;">
+            <label style="color: var(--primary);"><i class="fas fa-user-md"></i> Phân công Bác sĩ <span class="req">*</span></label>
+            <select name="doctor_id" id="doctorSelect">
+              <option value="">-- Chọn Bác sĩ hỗ trợ --</option>
+              {% for doc in doctors %}
+              <option value="{{ doc.id }}">{{ doc.full_name }}</option>
+              {% endfor %}
+            </select>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 5px;">Trợ lý sẽ chỉ nhìn thấy bệnh nhân của Bác sĩ được phân công này.</p>
+          </div>
+
+        </div>
+      </div>
+
+      <div style="margin-top:24px;display:flex;justify-content:flex-end">
+        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Tạo tài khoản</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function toggleFields() {
+  const role = document.getElementById('roleSelect').value;
+  const profileSection = document.getElementById('profileFields');
+  const docFields = document.querySelectorAll('.doctor-only');
+  const asstFields = document.querySelectorAll('.assistant-only'); // Lấy các thẻ của trợ lý
+  const doctorSelect = document.getElementById('doctorSelect');
+  
+  if (role === 'admin' || role === '') {
+    profileSection.style.display = 'none';
+  } else {
+    profileSection.style.display = 'block';
+    
+    // Xử lý Bác sĩ
+    if (role === 'doctor') {
+      docFields.forEach(el => el.style.display = 'flex');
+    } else {
+      docFields.forEach(el => el.style.display = 'none');
+    }
+
+    // Xử lý Trợ lý
+    if (role === 'assistant') {
+      asstFields.forEach(el => el.style.display = 'block');
+      doctorSelect.setAttribute('required', 'required'); // Bắt buộc chọn
+    } else {
+      asstFields.forEach(el => el.style.display = 'none');
+      doctorSelect.removeAttribute('required'); // Gỡ bắt buộc
+    }
+  }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,14 @@
+# Môi trường ảo
+venv/
+env/
+
+# File rác của Python
+__pycache__/
+*.pyc
+
+# Biến môi trường (chứa mật khẩu database)
+.env
+
+# Thư mục IDE
+.vscode/
+.idea/

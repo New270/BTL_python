@@ -1,0 +1,209 @@
+{% extends 'shared/base.html' %}
+{% block title %}Tạo Bệnh án — {{ patient.full_name }}{% endblock %}
+{% block page_title %}Khám bệnh — {{ patient.full_name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.prescription-row { display:grid; grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr 36px; gap:8px; align-items:start; }
+.section-header { font-size:.9rem; font-weight:700; color:var(--primary); margin-bottom:14px;
+                  display:flex; align-items:center; gap:8px; padding-bottom:8px;
+                  border-bottom:2px solid var(--primary-lt); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="display:grid;grid-template-columns:2fr 1fr;gap:20px;align-items:start">
+
+  <div>
+    <div class="card mb-4" style="overflow:hidden">
+      <div class="patient-header" style="padding:16px 20px">
+        <div class="patient-avatar" style="width:46px;height:46px;font-size:1.1rem">
+          {{ '♀' if patient.gender=='female' else '♂' }}
+        </div>
+        <div>
+          <div style="font-weight:700">{{ patient.full_name }}</div>
+          <div style="display:flex;gap:10px;font-size:.82rem;opacity:.85;margin-top:3px">
+            <span class="patient-code-display" style="font-size:.78rem">{{ patient.patient_code }}</span>
+            {% if patient.age %}<span>{{ patient.age }} tuổi</span>{% endif %}
+            <span>{{ patient.gender_display }}</span>
+            {% if patient.allergy_notes %}<span style="color:#fca5a5">⚠️ Dị ứng: {{ patient.allergy_notes }}</span>{% endif %}
+          </div>
+        </div>
+        <div style="margin-left:auto">
+          <span style="background:rgba(240,165,0,.25);color:#fde68a;padding:3px 12px;border-radius:20px;font-size:.78rem;font-weight:700">
+            {{ appt.type_display }}
+          </span>
+        </div>
+      </div>
+      {% if appt.medical_record and appt.medical_record.vital_sign %}
+      {% set v = appt.medical_record.vital_sign %}
+      <div style="padding:12px 20px;background:var(--bg);display:flex;gap:20px;flex-wrap:wrap">
+        {% if v.temperature %}<span class="text-sm">🌡️ <strong>{{ v.temperature }}°C</strong></span>{% endif %}
+        {% if v.blood_pressure %}<span class="text-sm">💉 <strong>{{ v.blood_pressure }}</strong> mmHg</span>{% endif %}
+        {% if v.heart_rate %}<span class="text-sm">❤️ <strong>{{ v.heart_rate }}</strong>/phút</span>{% endif %}
+        {% if v.spo2 %}<span class="text-sm">📊 SpO₂ <strong>{{ v.spo2 }}%</strong></span>{% endif %}
+        {% if v.weight %}<span class="text-sm">⚖️ <strong>{{ v.weight }}kg</strong></span>{% endif %}
+        {% if v.height %}<span class="text-sm">📏 <strong>{{ v.height }}cm</strong></span>{% endif %}
+      </div>
+      {% endif %}
+    </div>
+
+    <form method="POST" id="exam-form" action="">
+      <div class="card mb-4">
+        <div class="card-body">
+          <div class="section-header"><i class="fas fa-notes-medical"></i> Hồ sơ bệnh án</div>
+          <div class="form-grid">
+            <div class="form-group full">
+              <label>Triệu chứng lâm sàng <span class="req">*</span></label>
+              <textarea name="symptoms" required placeholder="Mô tả triệu chứng bệnh nhân báo cáo...">{% if record %}{{ record.symptoms or '' }}{% endif %}</textarea>
+            </div>
+            
+            <div class="form-group full">
+              <label>Chẩn đoán <span class="req">*</span></label>
+              <input type="text" name="diagnosis" required placeholder="VD: Viêm amidan cấp tính" value="{% if record %}{{ record.diagnosis or '' }}{% endif %}"/>
+            </div>
+            
+            <div class="form-group">
+              <label>Mã ICD-10</label>
+              <input type="text" name="icd10_code" placeholder="VD: J03.9" value="{% if record %}{{ record.icd10_code or '' }}{% endif %}"/>
+            </div>
+            
+            <div class="form-group">
+              <label>Phí khám (VNĐ)</label>
+              <input type="number" name="exam_fee" value="100000" min="0"/>
+            </div>
+            
+            <div class="form-group full">
+              <label>Phác đồ điều trị</label>
+              <textarea name="treatment_plan" placeholder="Hướng điều trị, nghỉ ngơi, theo dõi...">{% if record %}{{ record.treatment_plan or '' }}{% endif %}</textarea>
+            </div>
+            
+            <div class="form-group">
+              <label>Ngày tái khám</label>
+              <input type="date" name="follow_up_date" value="{% if record and record.follow_up_date %}{{ record.follow_up_date.strftime('%Y-%m-%d') }}{% endif %}"/>
+            </div>
+            
+            <div class="form-group full">
+              <label>Ghi chú bác sĩ</label>
+              <textarea name="doctor_notes" placeholder="Ghi chú thêm...">{% if record %}{{ record.doctor_notes or '' }}{% endif %}</textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card mb-4">
+        <div class="card-body">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+            <div class="section-header" style="margin-bottom:0;border:none;padding:0"><i class="fas fa-pills"></i> Kê đơn thuốc</div>
+            <button type="button" class="btn btn-outline btn-sm" onclick="addRow()">
+              <i class="fas fa-plus"></i> Thêm thuốc
+            </button>
+          </div>
+
+          <div class="prescription-row" style="margin-bottom:6px">
+            <div style="font-size:.73rem;font-weight:600;color:var(--text-muted);text-transform:uppercase">Tên thuốc</div>
+            <div style="font-size:.73rem;font-weight:600;color:var(--text-muted);text-transform:uppercase">Số lượng</div>
+            <div style="font-size:.73rem;font-weight:600;color:var(--text-muted);text-transform:uppercase">Liều dùng</div>
+            <div style="font-size:.73rem;font-weight:600;color:var(--text-muted);text-transform:uppercase">Tần suất</div>
+            <div style="font-size:.73rem;font-weight:600;color:var(--text-muted);text-transform:uppercase">Số ngày</div>
+            <div style="font-size:.73rem;font-weight:600;color:var(--text-muted);text-transform:uppercase">Hướng dẫn</div>
+            <div></div>
+          </div>
+
+          <div id="prescription-rows"></div>
+
+          <div class="form-group" style="margin-top:16px">
+            <label>Lời dặn của bác sĩ về thuốc</label>
+            <textarea name="prescription_notes" placeholder="Uống đủ liều, tái khám nếu không giảm sau 3 ngày..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:12px;justify-content:flex-end">
+        <a href="{{ url_for('doctor.dashboard') }}" class="btn btn-outline"><i class="fas fa-times"></i> Hủy</a>
+        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Lưu bệnh án &amp; tạo hóa đơn</button>
+      </div>
+    </form>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:16px">
+    <div class="card">
+      <div class="card-header">
+        <i class="fas fa-history" style="color:var(--primary)"></i>
+        <span class="card-title">Lịch sử khám gần đây</span>
+      </div>
+      <div class="card-body" style="padding:12px; max-height: 800px; overflow-y: auto;">
+        
+        {% if history and history|length > 0 %}
+          {% for rec in history %}
+            {% if rec.appointment.status == 'completed' %}
+            <div style="padding:12px;background:var(--bg);border-left:3px solid var(--primary);border-radius:6px;margin-bottom:10px">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px">
+                <span style="font-size:.8rem;font-weight:600;color:var(--primary)">{{ rec.created_at.strftime('%d/%m/%Y') }}</span>
+                <span style="font-size:.75rem;color:var(--text-muted)">BS. {{ rec.doctor.full_name }}</span>
+              </div>
+              <div style="font-weight:700;font-size:.9rem;color:var(--text);margin-bottom:5px">{{ rec.diagnosis or 'Chưa có chẩn đoán' }}</div>
+              
+              {% if rec.prescription and rec.prescription.items|length > 0 %}
+              <div style="font-size:.8rem;color:var(--success);background:#d1fae5;padding:3px 8px;border-radius:4px;display:inline-block">
+                <i class="fas fa-pills"></i> Đã kê {{ rec.prescription.items|length }} loại thuốc
+              </div>
+              {% else %}
+              <div style="font-size:.8rem;color:var(--text-muted);">
+                <i class="fas fa-times-circle"></i> Không kê đơn
+              </div>
+              {% endif %}
+            </div>
+            {% endif %}
+          {% endfor %}
+        {% else %}
+          <div style="text-align:center;padding:30px 10px;color:var(--text-muted);font-size:.9rem">
+            <i class="fas fa-file-medical-alt" style="font-size: 2rem; color: #cbd5e1; margin-bottom: 10px;"></i><br>
+            Bệnh nhân chưa có lịch sử khám bệnh hoàn tất nào.
+          </div>
+        {% endif %}
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const MEDICINES = [
+  {% for m in medicines %}
+  { id: {{ m.id }}, name: "{{ m.name }}", unit: "{{ m.unit }}", stock: {{ m.stock_quantity }}, price: {{ m.price }} }{% if not loop.last %},{% endif %}
+  {% endfor %}
+];
+
+function addRow() {
+  const container = document.getElementById('prescription-rows');
+  const idx = container.children.length;
+  const options = MEDICINES.map(m =>
+    `<option value="${m.id}">${m.name} (${m.unit}) — còn ${m.stock}</option>`
+  ).join('');
+
+  const row = document.createElement('div');
+  row.className = 'prescription-row';
+  row.style.marginBottom = '8px';
+  row.innerHTML = `
+    <select name="medicine_id[]" onchange="updateUnit(this, ${idx})">
+      <option value="">-- Chọn thuốc --</option>${options}
+    </select>
+    <input type="number" name="quantity[]" placeholder="SL" min="1" value="1"/>
+    <input type="text" name="dosage[]" placeholder="1 viên"/>
+    <input type="text" name="frequency[]" placeholder="2 lần/ngày"/>
+    <input type="number" name="duration_days[]" placeholder="Ngày" min="1"/>
+    <input type="text" name="instructions[]" placeholder="Sau ăn"/>
+    <button type="button" onclick="this.parentElement.remove()" class="btn btn-danger btn-icon btn-sm">
+      <i class="fas fa-times"></i>
+    </button>
+  `;
+  container.appendChild(row);
+}
+
+// Thêm 1 dòng mặc định nếu cần
+if(document.getElementById('prescription-rows').children.length === 0) {
+    addRow();
+}
+</script>
+{% endblock %}

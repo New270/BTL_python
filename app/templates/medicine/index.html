@@ -1,0 +1,102 @@
+{% extends 'shared/base.html' %}
+{% block title %}Quản lý Kho thuốc — MediCare{% endblock %}
+{% block page_title %}Quản lý Kho thuốc{% endblock %}
+
+{% block content %}
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-icon blue"><i class="fas fa-pills"></i></div>
+    <div><div class="stat-val">{{ medicines|length }}</div><div class="stat-label">Tổng loại thuốc</div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon red"><i class="fas fa-exclamation-triangle"></i></div>
+    <div><div class="stat-val">{{ low_count }}</div><div class="stat-label">Sắp hết hàng</div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon orange"><i class="fas fa-calendar-times"></i></div>
+    <div><div class="stat-val">{{ expiring_count }}</div><div class="stat-label">Sắp hết hạn</div></div>
+  </div>
+</div>
+
+<div class="card mb-4">
+  <div class="card-body" style="padding:16px 22px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px">
+    <form method="GET" style="display:flex; gap:10px; flex:1; max-width:500px">
+      <input type="text" name="q" value="{{ q }}" placeholder="Tìm tên thuốc, hoạt chất..." style="flex:1">
+      <input type="hidden" name="show" value="{{ show }}">
+      <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i> Tìm</button>
+      {% if q %}<a href="{{ url_for('medicine.index') }}" class="btn btn-outline">Xóa</a>{% endif %}
+    </form>
+    
+    <div style="display:flex; gap:10px">
+      <a href="{{ url_for('medicine.index', show='all') }}" class="btn btn-sm {% if show == 'all' %}btn-primary{% else %}btn-outline{% endif %}">Tất cả</a>
+      <a href="{{ url_for('medicine.index', show='low') }}" class="btn btn-sm {% if show == 'low' %}btn-danger{% else %}btn-outline{% endif %}">Sắp hết</a>
+      <a href="{{ url_for('medicine.index', show='expiring') }}" class="btn btn-sm {% if show == 'expiring' %}btn-warning{% else %}btn-outline{% endif %}">Sắp HSD</a>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header" style="justify-content:space-between">
+    <div>
+      <i class="fas fa-boxes" style="color:var(--primary)"></i>
+      <span class="card-title">Danh mục Thuốc & Vật tư</span>
+    </div>
+    <a href="{{ url_for('medicine.new_medicine') }}" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Thêm thuốc mới</a>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Tên thuốc / Hoạt chất</th>
+          <th>Dạng / Đơn vị</th>
+          <th>Hạn sử dụng</th>
+          <th>Tồn kho</th>
+          <th>Giá bán</th>
+          <th>Cập nhật kho</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in medicines %}
+        <tr>
+          <td>
+            <div style="font-weight:600">{{ m.name }}</div>
+            <div class="text-muted text-sm">{{ m.active_ingredient or '—' }}</div>
+          </td>
+          <td>
+            <div>{{ m.dosage_form or '—' }}</div>
+            <div class="text-muted text-sm">ĐV: {{ m.unit }}</div>
+          </td>
+          <td>
+            {% if m.expiry_date %}
+              <span class="{% if m.is_expired %}text-danger{% elif m.is_near_expiry %}text-warning{% endif %}" style="font-weight:600">
+                {{ m.expiry_date.strftime('%d/%m/%Y') }}
+              </span>
+            {% else %}—{% endif %}
+          </td>
+          <td>
+            {% if m.is_low_stock %}
+              <span class="badge badge-danger">{{ m.stock_quantity }} {{ m.unit }}</span>
+            {% else %}
+              <span class="badge badge-success">{{ m.stock_quantity }} {{ m.unit }}</span>
+            {% endif %}
+          </td>
+          <td><strong style="color:var(--primary)">{{ "{:,.0f}".format(m.price) }} đ</strong></td>
+          <td>
+            <form method="POST" action="{{ url_for('medicine.update_stock', med_id=m.id) }}" style="display:flex;gap:6px">
+              <select name="action" style="padding:4px 8px; border-radius:6px; border:1px solid var(--border)">
+                <option value="import">Nhập (+)</option>
+                <option value="adjust">Chỉnh (=)</option>
+              </select>
+              <input type="number" name="quantity" required style="width:70px; padding:4px 8px" placeholder="SL">
+              <button type="submit" class="btn btn-primary btn-sm btn-icon"><i class="fas fa-save"></i></button>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted)">Không tìm thấy thuốc nào trong kho.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

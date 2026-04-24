@@ -1,0 +1,133 @@
+{% extends 'shared/base.html' %}
+{% block title %}{{ patient.full_name }} — MediCare{% endblock %}
+{% block page_title %}Hồ sơ Bệnh nhân{% endblock %}
+
+{% block content %}
+<!-- Patient Header -->
+<div class="card mb-6" style="overflow:hidden">
+  <div class="patient-header">
+    <div class="patient-avatar">
+      {{ '♀' if patient.gender == 'female' else '♂' if patient.gender == 'male' else '⚕' }}
+    </div>
+    <div style="flex:1">
+      <div style="font-size:1.4rem;font-weight:700;margin-bottom:6px">{{ patient.full_name }}</div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <span class="patient-code-display">{{ patient.patient_code }}</span>
+        {% if patient.dob %}<span style="opacity:.8;font-size:.88rem">{{ patient.dob.strftime('%d/%m/%Y') }} · {{ patient.age }} tuổi</span>{% endif %}
+        {% if patient.gender %}<span style="opacity:.8;font-size:.88rem">· {{ patient.gender_display }}</span>{% endif %}
+        {% if patient.blood_type and patient.blood_type != 'unknown' %}
+          <span style="background:rgba(240,165,0,.25);color:#fde68a;padding:2px 10px;border-radius:20px;font-size:.78rem;font-weight:700">🩸 {{ patient.blood_type }}</span>
+        {% endif %}
+      </div>
+      {% if patient.allergy_notes %}
+      <div style="margin-top:8px;background:rgba(224,62,62,.2);color:#fca5a5;padding:5px 12px;border-radius:20px;font-size:.8rem;display:inline-block">
+        ⚠️ Dị ứng: {{ patient.allergy_notes }}
+      </div>
+      {% endif %}
+    </div>
+    <div style="display:flex;gap:8px">
+      <a href="{{ url_for('receptionist.edit_patient', patient_id=patient.id) }}" class="btn btn-outline btn-sm" style="color:#fff;border-color:rgba(255,255,255,.4)">
+        <i class="fas fa-edit"></i> Chỉnh sửa
+      </a>
+      <a href="{{ url_for('receptionist.new_appointment') }}?patient_id={{ patient.id }}" class="btn btn-accent btn-sm">
+        <i class="fas fa-calendar-plus"></i> Đặt lịch
+      </a>
+    </div>
+  </div>
+
+  <!-- Info Grid -->
+  <div class="card-body">
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px">
+      <div>
+        <div class="text-muted text-sm">📱 Số điện thoại</div>
+        <div style="font-weight:600;margin-top:3px">{{ patient.phone or '—' }}</div>
+      </div>
+      <div>
+        <div class="text-muted text-sm">📧 Email</div>
+        <div style="font-weight:600;margin-top:3px">{{ patient.email or '—' }}</div>
+      </div>
+      <div>
+        <div class="text-muted text-sm">🪪 CCCD/CMND</div>
+        <div style="font-weight:600;margin-top:3px;font-family:monospace">{{ patient.national_id or '—' }}</div>
+      </div>
+      <div>
+        <div class="text-muted text-sm">🏥 Số BHYT</div>
+        <div style="font-weight:600;margin-top:3px;font-family:monospace">{{ patient.insurance_number or '—' }}</div>
+      </div>
+      <div>
+        <div class="text-muted text-sm">📍 Địa chỉ</div>
+        <div style="font-weight:600;margin-top:3px">{{ patient.address or '—' }}</div>
+      </div>
+      <div>
+        <div class="text-muted text-sm">🆘 Liên hệ khẩn cấp</div>
+        <div style="font-weight:600;margin-top:3px">
+          {% if patient.emergency_contact_name %}
+            {{ patient.emergency_contact_name }} ({{ patient.emergency_contact_rel or '' }}) · {{ patient.emergency_contact_phone or '' }}
+          {% else %}—{% endif %}
+        </div>
+      </div>
+      <div>
+        <div class="text-muted text-sm">🗓️ Ngày đăng ký</div>
+        <div style="font-weight:600;margin-top:3px">{{ patient.created_at.strftime('%d/%m/%Y') }}</div>
+      </div>
+      <div>
+        <div class="text-muted text-sm">📊 Tổng số lần khám</div>
+        <div style="font-weight:600;margin-top:3px;color:var(--primary)">{{ patient.total_visits }} lần</div>
+      </div>
+    </div>
+    {% if patient.chronic_diseases %}
+    <div style="margin-top:16px;padding:12px;background:var(--bg);border-radius:9px;border-left:3px solid var(--warning)">
+      <div class="text-muted text-sm" style="margin-bottom:4px">🩺 Tiền sử bệnh / bệnh mãn tính</div>
+      <div style="font-size:.9rem">{{ patient.chronic_diseases }}</div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Lịch sử khám -->
+<div class="card">
+  <div class="card-header">
+    <i class="fas fa-history" style="color:var(--primary)"></i>
+    <span class="card-title">Lịch sử khám bệnh</span>
+    <span class="badge badge-primary" style="margin-left:8px">{{ appointments|length }} lần</span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Ngày khám</th><th>Bác sĩ</th><th>Loại</th><th>Chẩn đoán</th><th>Trạng thái</th><th>Hóa đơn</th></tr>
+      </thead>
+      <tbody>
+        {% for a in appointments %}
+        <tr>
+          <td style="font-size:.88rem">{{ a.scheduled_at.strftime('%d/%m/%Y %H:%M') }}</td>
+          <td style="font-size:.88rem">{{ a.doctor.full_name }}</td>
+          <td><span class="badge badge-muted">{{ a.type_display }}</span></td>
+          <td style="font-size:.85rem">
+            {% if a.medical_record %}{{ a.medical_record.diagnosis or '—' }}{% else %}—{% endif %}
+          </td>
+          <td>
+            {% if a.status == 'completed' %}<span class="badge badge-success">Hoàn thành</span>
+            {% elif a.status == 'in_progress' %}<span class="badge badge-info">Đang khám</span>
+            {% elif a.status == 'confirmed' %}<span class="badge badge-warning">Đã xác nhận</span>
+            {% elif a.status == 'cancelled' %}<span class="badge badge-danger">Đã hủy</span>
+            {% else %}<span class="badge badge-muted">{{ a.status }}</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if a.invoice %}
+              {% if a.invoice.status == 'paid' %}
+                <span class="badge badge-success">Đã TT</span>
+              {% else %}
+                <span class="badge badge-warning">Chưa TT</span>
+              {% endif %}
+            {% else %}—{% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text-muted)">Chưa có lịch sử khám</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

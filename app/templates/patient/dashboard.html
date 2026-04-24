@@ -1,0 +1,58 @@
+{% extends 'shared/base.html' %}
+{% block title %}Trang chủ Bệnh nhân — MediCare{% endblock %}
+{% block page_title %}Xin chào, {{ patient.full_name }} 👋{% endblock %}
+
+{% block content %}
+<div style="display:grid; grid-template-columns: 1fr 2fr; gap: 20px; align-items: start;">
+  <div class="card">
+    <div class="card-header"><i class="fas fa-id-card" style="color:var(--primary)"></i> <span class="card-title">Thẻ Bệnh nhân</span></div>
+    <div class="card-body" style="text-align:center">
+      <div style="width:80px;height:80px;background:var(--primary-lt);color:var(--primary);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2.5rem;margin:0 auto 16px;">
+        {{ '♀' if patient.gender == 'female' else '♂' if patient.gender == 'male' else '👤' }}
+      </div>
+      <h3 style="margin-bottom:8px; font-size:1.3rem;">{{ patient.full_name }}</h3>
+      <div class="patient-code-display" style="display:inline-block; margin-bottom:20px; background:var(--primary); color:#fff;">
+        {{ patient.patient_code }}
+      </div>
+      <div style="text-align:left; font-size:0.95rem; line-height:2; border-top:1px solid var(--border); padding-top:16px;">
+        <div><i class="fas fa-phone text-muted" style="width:24px"></i> {{ patient.phone or 'Chưa cập nhật' }}</div>
+        <div><i class="fas fa-calendar-day text-muted" style="width:24px"></i> {{ patient.dob.strftime('%d/%m/%Y') if patient.dob else 'Chưa cập nhật' }}</div>
+        <div><i class="fas fa-tint text-muted" style="width:24px"></i> Nhóm máu: <strong>{{ patient.blood_type }}</strong></div>
+        <div><i class="fas fa-hospital-user text-muted" style="width:24px"></i> BHYT: {{ patient.insurance_number or '—' }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header" style="justify-content:space-between">
+      <div>
+        <i class="fas fa-calendar-check" style="color:var(--accent)"></i> 
+        <span class="card-title">Lịch hẹn gần đây</span>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Thời gian</th><th>Bác sĩ</th><th>Loại khám</th><th>Trạng thái</th></tr></thead>
+        <tbody>
+          {% for a in appts %}
+          <tr>
+            <td><strong>{{ a.scheduled_at.strftime('%d/%m/%Y %H:%M') }}</strong></td>
+            <td>{{ a.doctor.full_name if a.doctor else '—' }}</td>
+            <td><span class="badge badge-muted">{{ a.type_display }}</span></td>
+            <td>
+              {% if a.status == 'pending' %}<span class="badge badge-warning">Chờ xác nhận</span>
+              {% elif a.status == 'confirmed' %}<span class="badge badge-info">Đã xác nhận</span>
+              {% elif a.status == 'in_progress' %}<span class="badge badge-primary">Đang khám</span>
+              {% elif a.status == 'completed' %}<span class="badge badge-success">Đã khám xong</span>
+              {% else %}<span class="badge badge-danger">Đã hủy</span>{% endif %}
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="4" style="text-align:center;padding:40px;color:var(--text-muted)">Bạn chưa có lịch hẹn nào. Vui lòng liên hệ Lễ tân để đặt lịch.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

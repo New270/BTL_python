@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Đăng nhập — MediCare Clinic</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet"/>
+  <style>
+    :root {
+      --primary: #1a6b5a; --primary-dk: #124d42; --accent: #f0a500;
+      --border: #e2e8f0; --text: #1a2332; --text-muted: #6b7a8d;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'DM Sans', sans-serif; min-height: 100vh; display: flex; background: #f4f7fa; }
+    .login-panel { width: 480px; min-height: 100vh; background: #fff; display: flex; flex-direction: column; justify-content: center; padding: 60px 52px; position: relative; }
+    .login-brand { display: flex; align-items: center; gap: 12px; margin-bottom: 48px; }
+    .brand-icon { width: 46px; height: 46px; background: var(--primary-dk); border-radius: 14px; display: flex; align-items: center; justify-content: center; color: var(--accent); font-size: 1.3rem; }
+    .brand-name { font-family: 'Playfair Display', serif; font-size: 1.4rem; color: var(--primary-dk); }
+    .brand-sub  { font-size: .72rem; color: var(--text-muted); letter-spacing: .5px; }
+    h1 { font-size: 1.6rem; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+    .login-sub { color: var(--text-muted); font-size: .9rem; margin-bottom: 36px; }
+    .form-group { margin-bottom: 20px; }
+    label { display: block; font-size: .82rem; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+    .input-wrap { position: relative; }
+    .input-wrap i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: .9rem; }
+    input { width: 100%; padding: 12px 14px 12px 40px; border: 1.5px solid var(--border); border-radius: 10px; font-size: .92rem; font-family: inherit; color: var(--text); transition: border .2s, box-shadow .2s; }
+    input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(26,107,90,.12); }
+    .eye-btn { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-muted); }
+    .btn-login { width: 100%; padding: 13px; background: var(--primary); color: #fff; border: none; border-radius: 10px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: all .2s; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px; }
+    .btn-login:hover { background: var(--primary-dk); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(26,107,90,.3); }
+    .alert { padding: 11px 16px; border-radius: 9px; margin-bottom: 20px; font-size: .86rem; font-weight: 500; display: flex; align-items: center; gap: 9px; }
+    .alert-danger { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+    .alert-warning { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+    .demo-section { margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--border); }
+    .demo-title { font-size: .75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 12px; }
+    .demo-accounts { display: flex; flex-wrap: wrap; gap: 8px; }
+    .demo-btn { padding: 5px 12px; border: 1.5px solid var(--border); border-radius: 20px; font-size: .78rem; font-weight: 600; cursor: pointer; background: #fff; transition: all .2s; }
+    .demo-btn:hover { border-color: var(--primary); color: var(--primary); background: #e8f5f1; }
+    .login-visual { flex: 1; background: linear-gradient(135deg, var(--primary-dk) 0%, #1a6b5a 50%, #2a9d8f 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px; position: relative; overflow: hidden; }
+    .visual-content { position: relative; text-align: center; color: #fff; }
+    .visual-icon { font-size: 5rem; margin-bottom: 24px; opacity: .9; }
+    .visual-title { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 700; margin-bottom: 12px; line-height: 1.3; }
+    @media (max-width: 900px) { .login-visual { display: none; } .login-panel { width: 100%; } }
+  </style>
+</head>
+<body>
+
+<div class="login-panel">
+  <div class="login-brand">
+    <div class="brand-icon"><i class="fas fa-heartbeat"></i></div>
+    <div>
+      <div class="brand-name">MediCare</div>
+      <div class="brand-sub">CLINIC MANAGEMENT SYSTEM</div>
+    </div>
+  </div>
+
+  <h1>Xin chào 👋</h1>
+  <p class="login-sub">Đăng nhập để tiếp tục quản lý phòng khám</p>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}
+    <div class="alert alert-{{ cat }}"><i class="fas fa-exclamation-circle"></i> {{ msg }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  <form method="POST">
+    <input type="hidden" name="expected_role" id="expected-role" value="">
+    
+    <div class="form-group">
+      <label>Tên đăng nhập</label>
+      <div class="input-wrap">
+        <i class="fas fa-user"></i>
+        <input type="text" name="username" placeholder="Nhập tên đăng nhập" required/>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Mật khẩu</label>
+      <div class="input-wrap">
+        <i class="fas fa-lock"></i>
+        <input type="password" name="password" id="password-input" placeholder="Nhập mật khẩu" required/>
+        <button type="button" class="eye-btn" onclick="togglePwd()"><i class="fas fa-eye" id="eye-icon"></i></button>
+      </div>
+    </div>
+
+    <button type="submit" class="btn-login"><i class="fas fa-sign-in-alt"></i> Đăng nhập</button>
+    <p style="margin-top: 20px; text-align: center; font-size: 0.9rem;">
+      Bệnh nhân mới? <a href="{{ url_for('auth.register') }}" style="color:var(--primary); font-weight:700">Đăng ký tài khoản</a>
+    </p>
+  </form>
+
+  <div class="demo-section">
+    <div class="demo-title">Chọn vai trò đăng nhập nhanh</div>
+    <div class="demo-accounts">
+      <button type="button" class="demo-btn" onclick="fillDemo('admin','admin123','admin')">⚙️ Admin</button>
+      <button type="button" class="demo-btn" onclick="fillDemo('bsnguyenvan','bs123','doctor')">🩺 Bác sĩ</button>
+      <button type="button" class="demo-btn" onclick="fillDemo('letan01','lt123','receptionist')">🖥️ Lễ tân</button>
+      <button type="button" class="demo-btn" onclick="fillDemo('troly01','tl123','assistant')">🩻 Trợ lý</button>
+      <button type="button" class="demo-btn" onclick="fillDemo('benhnhan01','bn123','patient')">👤 Bệnh nhân</button>
+    </div>
+  </div>
+</div>
+
+<div class="login-visual">
+  <div class="visual-content">
+    <div class="visual-icon">🏥</div>
+    <div class="visual-title">Quản lý phòng khám<br/>thông minh</div>
+  </div>
+</div>
+
+<script>
+function togglePwd() {
+  const inp = document.getElementById('password-input');
+  const ico = document.getElementById('eye-icon');
+  if (inp.type === 'password') { inp.type = 'text'; ico.className = 'fas fa-eye-slash'; }
+  else { inp.type = 'password'; ico.className = 'fas fa-eye'; }
+}
+function fillDemo(user, pwd, role) {
+  document.querySelector('input[name=username]').value = user;
+  document.getElementById('password-input').value = pwd;
+  document.getElementById('expected-role').value = role;
+}
+</script>
+</body>
+</html>

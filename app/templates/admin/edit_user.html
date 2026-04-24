@@ -1,0 +1,69 @@
+{% extends 'shared/base.html' %}
+{% block title %}Sửa hồ sơ — {{ user.username }}{% endblock %}
+{% block page_title %}Chỉnh sửa thông tin nhân sự{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:750px">
+  <div class="card-header" style="justify-content: space-between;">
+    <div style="display:flex; align-items:center; gap:10px">
+        <i class="fas fa-user-edit" style="color:var(--primary)"></i>
+        <span class="card-title">Tài khoản: {{ user.username }} [{{ user.role | upper }}]</span>
+    </div>
+  </div>
+  <div class="card-body">
+    <form method="POST">
+      <div class="form-grid" style="margin-bottom:24px">
+        <div class="form-group">
+          <label>Tên đăng nhập</label>
+          <input type="text" name="username" value="{{ user.username }}" required/>
+        </div>
+        <div class="form-group">
+          <label>Đổi mật khẩu mới</label>
+          <input type="password" name="password" placeholder="(Để trống nếu giữ nguyên)"/>
+        </div>
+        <div class="form-group full" style="background:var(--primary-lt); padding:15px; border-radius:10px">
+          <div style="display:flex; align-items:center; gap:12px">
+            <input type="checkbox" name="is_active" id="is_active" {% if user.is_active %}checked{% endif %} style="width:20px; height:20px">
+            <label for="is_active" style="margin:0; font-weight:700">Trạng thái: Hoạt động (Cho phép đăng nhập)</label>
+          </div>
+        </div>
+      </div>
+
+      {% if profile %}
+      <div style="border-top: 1px solid var(--border); padding-top:20px">
+        <h4 style="margin-bottom:15px; color:var(--primary)">Thông tin cá nhân</h4>
+        <div class="form-grid">
+          <div class="form-group full">
+            <label>Họ và tên nhân viên</label>
+            <input type="text" name="full_name" value="{{ profile.full_name }}" required/>
+          </div>
+          <div class="form-group"><label>Điện thoại</label><input type="text" name="phone" value="{{ profile.phone or '' }}"/></div>
+
+          {% if user.role == 'doctor' %}
+          <div class="form-group"><label>Chuyên khoa</label><input type="text" name="specialty" value="{{ profile.specialty or '' }}"/></div>
+          <div class="form-group"><label>Số chứng chỉ</label><input type="text" name="license_number" value="{{ profile.license_number or '' }}"/></div>
+          {% endif %}
+
+          {% if user.role == 'assistant' %}
+          <div class="form-group full" style="background:#fffbeb; padding:15px; border-radius:8px">
+            <label>Thay đổi Bác sĩ hỗ trợ</label>
+            <select name="doctor_id">
+              <option value="">-- Không phân công --</option>
+              {% for doc in doctors %}
+              <option value="{{ doc.id }}" {% if profile.doctor_id == doc.id %}selected{% endif %}>{{ doc.full_name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+
+      <div style="margin-top:30px; display:flex; justify-content:flex-end; gap:12px">
+        <a href="{{ url_for('admin.users') }}" class="btn btn-outline">Hủy bỏ</a>
+        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Lưu thay đổi</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

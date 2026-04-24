@@ -1,0 +1,64 @@
+{% extends 'shared/base.html' %}
+{% block title %}Admin Dashboard — MediCare{% endblock %}
+{% block page_title %}Tổng quan Hệ thống{% endblock %}
+
+{% block content %}
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-icon blue"><i class="fas fa-users"></i></div>
+    <div><div class="stat-val">{{ total_patients }}</div><div class="stat-label">Tổng Bệnh nhân</div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon green"><i class="fas fa-user-md"></i></div>
+    <div><div class="stat-val">{{ total_doctors }}</div><div class="stat-label">Bác sĩ</div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon orange"><i class="fas fa-calendar-check"></i></div>
+    <div><div class="stat-val">{{ today_appts }}</div><div class="stat-label">Lịch khám hôm nay</div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon red"><i class="fas fa-file-invoice-dollar"></i></div>
+    <div><div class="stat-val">{{ unpaid_invoices }}</div><div class="stat-label">Hóa đơn chưa thu</div></div>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+  <div class="card">
+    <div class="card-header">
+      <i class="fas fa-exclamation-triangle" style="color:var(--danger)"></i>
+      <span class="card-title">Cảnh báo kho thuốc (Sắp hết)</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Tên thuốc</th><th>Tồn kho</th><th>Mức cảnh báo</th></tr></thead>
+        <tbody>
+          {% for m in low_medicines %}
+          <tr>
+            <td style="font-weight:600">{{ m.name }}</td>
+            <td><span class="badge badge-danger">{{ m.stock_quantity }} {{ m.unit }}</span></td>
+            <td>Dưới {{ m.min_stock_alert }} {{ m.unit }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="3" style="text-align:center;padding:20px;color:var(--success)"><i class="fas fa-check-circle"></i> Kho thuốc đang ổn định</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <i class="fas fa-bolt" style="color:var(--accent)"></i>
+      <span class="card-title">Thao tác nhanh</span>
+    </div>
+    <div class="card-body" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <a href="{{ url_for('admin.new_user') }}" class="btn btn-primary" style="justify-content:center">
+        <i class="fas fa-user-plus"></i> Tạo tài khoản mới
+      </a>
+      <a href="{{ url_for('admin.users') }}" class="btn btn-outline" style="justify-content:center">
+        <i class="fas fa-users-cog"></i> Quản lý nhân sự
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

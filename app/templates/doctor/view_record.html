@@ -1,0 +1,116 @@
+{% extends 'shared/base.html' %}
+{% block title %}Chi tiết Bệnh án — {{ record.patient.full_name }}{% endblock %}
+{% block page_title %}Chi tiết Bệnh án{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 0 auto;">
+  
+  <div style="display: flex; gap: 12px; justify-content: flex-end; margin-bottom: 20px;" class="no-print">
+    <a href="{{ url_for('doctor.dashboard') }}" class="btn btn-outline">
+      <i class="fas fa-arrow-left"></i> Về Dashboard
+    </a>
+    <button onclick="window.print()" class="btn btn-primary">
+      <i class="fas fa-print"></i> In Bệnh Án
+    </button>
+  </div>
+
+  <div class="card mb-4 print-card">
+    <div class="card-header" style="justify-content: space-between;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <i class="fas fa-file-medical" style="color: var(--primary);"></i>
+        <span class="card-title">Hồ sơ khám bệnh: {{ record.patient.full_name }}</span>
+      </div>
+      <span class="badge badge-primary">{{ record.created_at.strftime('%d/%m/%Y %H:%M') }}</span>
+    </div>
+    <div class="card-body">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; font-size: 0.95rem;">
+        <div><strong>Mã BN:</strong> <span class="patient-code-display" style="font-size:0.8rem">{{ record.patient.patient_code }}</span></div>
+        <div><strong>Bác sĩ phụ trách:</strong> {{ record.doctor.full_name }}</div>
+        <div><strong>Giới tính / Tuổi:</strong> {{ record.patient.gender_display }} / {{ record.patient.age }} tuổi</div>
+        <div><strong>Ngày tái khám:</strong> 
+          {% if record.follow_up_date %}
+            <strong style="color: var(--accent);">{{ record.follow_up_date.strftime('%d/%m/%Y') }}</strong>
+          {% else %}
+            Không hẹn
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% if record.vital_sign %}
+  <div class="card mb-4 print-card">
+    <div class="card-header"><span class="card-title"><i class="fas fa-heartbeat" style="color: var(--danger)"></i> Sinh hiệu (Đo bởi Trợ lý)</span></div>
+    <div class="card-body" style="display: flex; gap: 30px; flex-wrap: wrap; font-size: 0.95rem;">
+      <div><strong>Mạch:</strong> {{ record.vital_sign.heart_rate or '--' }} bpm</div>
+      <div><strong>Huyết áp:</strong> {{ record.vital_sign.blood_pressure or '--' }} mmHg</div>
+      <div><strong>Nhiệt độ:</strong> {{ record.vital_sign.temperature or '--' }} °C</div>
+      <div><strong>Cân nặng:</strong> {{ record.vital_sign.weight or '--' }} kg</div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="card mb-4 print-card">
+    <div class="card-header"><span class="card-title"><i class="fas fa-stethoscope" style="color: var(--info)"></i> Kết quả Khám lâm sàng</span></div>
+    <div class="card-body" style="line-height: 1.6;">
+      <div style="margin-bottom: 16px;">
+        <strong style="color: var(--text-muted);">Triệu chứng:</strong><br/>
+        {{ record.symptoms | replace('\n', '<br>') | safe }}
+      </div>
+      <div style="margin-bottom: 16px;">
+        <strong style="color: var(--text-muted);">Chẩn đoán xác định:</strong><br/>
+        <span style="color: var(--danger); font-weight: bold; font-size: 1.1rem;">{{ record.diagnosis }}</span>
+      </div>
+      <div style="margin-bottom: 16px;">
+        <strong style="color: var(--text-muted);">Phác đồ điều trị:</strong><br/>
+        {{ record.treatment_plan | replace('\n', '<br>') | safe }}
+      </div>
+      <div>
+        <strong style="color: var(--text-muted);">Lời dặn của Bác sĩ:</strong><br/>
+        {{ record.doctor_notes | replace('\n', '<br>') | safe }}
+      </div>
+    </div>
+  </div>
+
+  {% if record.prescription and record.prescription.items %}
+  <div class="card mb-4 print-card">
+    <div class="card-header"><span class="card-title"><i class="fas fa-pills" style="color: var(--success)"></i> Đơn thuốc</span></div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>STT</th>
+            <th>Tên thuốc</th>
+            <th>Số lượng</th>
+            <th>Liều dùng</th>
+            <th>Cách dùng</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in record.prescription.items %}
+          <tr>
+            <td>{{ loop.index }}</td>
+            <td><strong>{{ item.medicine.name }}</strong></td>
+            <td>{{ item.quantity }} {{ item.medicine.unit }}</td>
+            <td>{{ item.dosage }}</td>
+            <td>{{ item.instructions }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+
+<style>
+  @media print {
+    body { background: #fff; }
+    .sidebar, .topbar, .no-print { display: none !important; }
+    .main-content { margin-left: 0 !important; padding: 0 !important; width: 100% !important; }
+    .print-card { box-shadow: none !important; border: 1px solid #ddd !important; margin-bottom: 20px !important; page-break-inside: avoid; }
+    .card-header { background: #f8fafc !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+{% endblock %}

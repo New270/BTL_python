@@ -1,0 +1,43 @@
+{% extends 'shared/base.html' %}
+{% block title %}Hàng chờ khám — MediCare{% endblock %}
+{% block page_title %}Hàng chờ khám bệnh{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <i class="fas fa-list-ol" style="color:var(--primary)"></i>
+    <span class="card-title">Hàng chờ hôm nay — {{ today.strftime('%d/%m/%Y') }}</span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>STT</th><th>Mã BN</th><th>Bệnh nhân</th><th>Lý do khám</th><th>Trạng thái</th><th>Thao tác</th></tr>
+      </thead>
+      <tbody>
+        {% for a in appts %}
+        <tr>
+          <td><div class="queue-number">{{ a.queue_number }}</div></td>
+          <td><span class="patient-code">{{ a.patient.patient_code }}</span></td>
+          <td>
+            <div style="font-weight:600">{{ a.patient.full_name }}</div>
+            <div class="text-sm text-muted">{{ a.patient.age }} tuổi</div>
+          </td>
+          <td>{{ a.chief_complaint or '—' }}</td>
+          <td>
+            {% if a.status == 'in_progress' %}<span class="badge badge-info">Đang khám</span>
+            {% else %}<span class="badge badge-warning">Chờ khám</span>{% endif %}
+          </td>
+          <td>
+            <form method="POST" action="{{ url_for('doctor.start_exam', appt_id=a.id) }}" style="display:inline">
+              <button class="btn btn-primary btn-sm"><i class="fas fa-stethoscope"></i> Bắt đầu khám</button>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted)">Không có bệnh nhân trong hàng chờ.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

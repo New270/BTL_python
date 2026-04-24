@@ -1,0 +1,70 @@
+{% extends 'shared/base.html' %}
+{% block title %}Hóa đơn & Thu ngân — MediCare{% endblock %}
+{% block page_title %}Quản lý Thu ngân{% endblock %}
+
+{% block content %}
+<div class="card mb-4">
+  <div class="card-body" style="padding:16px 22px">
+    <div style="display:flex; gap:10px">
+      <a href="{{ url_for('receptionist.invoices', status='all') }}" class="btn btn-sm {% if status == 'all' %}btn-primary{% else %}btn-outline{% endif %}">Tất cả</a>
+      <a href="{{ url_for('receptionist.invoices', status='unpaid') }}" class="btn btn-sm {% if status == 'unpaid' %}btn-accent{% else %}btn-outline{% endif %}">Chưa thanh toán</a>
+      <a href="{{ url_for('receptionist.invoices', status='paid') }}" class="btn btn-sm {% if status == 'paid' %}btn-primary{% else %}btn-outline{% endif %}">Đã thanh toán</a>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <i class="fas fa-file-invoice-dollar" style="color:var(--primary)"></i>
+    <span class="card-title">Danh sách Hóa đơn</span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Mã HĐ</th>
+          <th>Ngày tạo</th>
+          <th>Bệnh nhân</th>
+          <th>Phí khám</th>
+          <th>Tiền thuốc</th>
+          <th>Tổng cộng</th>
+          <th>Trạng thái</th>
+          <th>Thao tác</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for i in invoices %}
+        <tr>
+          <td><strong style="font-family:monospace;color:var(--primary)">{{ i.invoice_code }}</strong></td>
+          <td style="font-size:.85rem">{{ i.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+          <td>
+            <div style="font-weight:600">{{ i.patient.full_name }}</div>
+            <div class="patient-code" style="font-size:.7rem">{{ i.patient.patient_code }}</div>
+          </td>
+          <td>{{ "{:,.0f}".format(i.exam_fee) }} đ</td>
+          <td>{{ "{:,.0f}".format(i.medicine_fee) }} đ</td>
+          <td><strong style="color:var(--danger)">{{ "{:,.0f}".format(i.total_amount) }} đ</strong></td>
+          <td>
+            {% if i.status == 'paid' %}<span class="badge badge-success">Đã thu tiền</span>
+            {% elif i.status == 'unpaid' %}<span class="badge badge-warning">Chưa thu</span>
+            {% else %}<span class="badge badge-danger">Đã hủy</span>{% endif %}
+          </td>
+          <td>
+            {% if i.status == 'unpaid' %}
+            <form method="POST" action="{{ url_for('receptionist.pay_invoice', invoice_id=i.id) }}" style="display:inline" onsubmit="return confirm('Xác nhận đã thu đủ tiền từ bệnh nhân?');">
+              <input type="hidden" name="payment_method" value="cash">
+              <button class="btn btn-primary btn-sm"><i class="fas fa-check-circle"></i> Thu tiền</button>
+            </form>
+            {% else %}
+              <span class="text-muted text-sm"><i class="fas fa-lock"></i> Đã đóng</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" style="text-align:center; padding:40px; color:var(--text-muted)">Không có hóa đơn nào.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

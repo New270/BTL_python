@@ -1,0 +1,34 @@
+{% extends 'shared/base.html' %}
+{% block title %}Lịch sử khám — MediCare{% endblock %}
+{% block page_title %}Lịch sử khám bệnh{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <i class="fas fa-notes-medical" style="color:var(--primary)"></i> <span class="card-title">Hồ sơ bệnh án của bạn</span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Ngày khám</th><th>Bác sĩ phụ trách</th><th>Chẩn đoán bệnh</th><th>Đơn thuốc</th></tr></thead>
+      <tbody>
+        {% for r in records %}
+        <tr>
+          <td><strong>{{ r.created_at.strftime('%d/%m/%Y') }}</strong></td>
+          <td>{{ r.doctor.full_name }}</td>
+          <td style="font-weight:600; color:var(--primary)">{{ r.diagnosis }}</td>
+          <td>
+            {% if r.prescription %}
+              <span class="badge badge-success">{{ r.prescription.items|length }} loại thuốc</span>
+            {% else %}
+              <span class="badge badge-muted">Không kê đơn</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4" style="text-align:center;padding:40px;color:var(--text-muted)">Bạn chưa có lịch sử khám bệnh nào trên hệ thống.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
