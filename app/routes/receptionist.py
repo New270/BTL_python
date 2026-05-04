@@ -286,3 +286,40 @@ def api_search_patients():
         'phone': p.phone or '',
         'dob': p.dob.strftime('%d/%m/%Y') if p.dob else '',
     } for p in results])
+
+
+@receptionist_bp.route('/appointments/<int:appt_id>/approve', methods=['GET', 'POST'])
+@login_required
+@require_receptionist
+def approve_appointment(appt_id):
+    appt = Appointment.query.get_or_404(appt_id)
+    
+    if request.method == 'POST':
+        # Lấy giờ và bác sĩ do Lễ tân chọn
+        scheduled_time_str = request.form.get('scheduled_time') # Dạng HH:MM
+        doctor_id = request.form.get('doctor_id')
+        
+        if scheduled_time_str and doctor_id:
+            # Ghép ngày cũ (do bệnh nhân chọn) với giờ mới (do lễ tân chọn)
+            date_part = appt.scheduled_at.date()
+            time_part = datetime.strptime(scheduled_time_str, '%H:%M').time()
+            new_datetime = datetime.combine(date_part, time_part)
+            
+            # Cập nhật thông tin và xếp số thứ tự
+            appt.scheduled_at = new_datetime
+            appt.doctor_id = int(doctor_id)
+            appt.receptionist_id = current_user.receptionist.id
+            appt.status = 'confirmed'
+            
+            same_day_count = Appointment.query.filter(
+                db.func.date(Appointment.scheduled_at) == date_part,
+                Appointment.doctor_id == appt.doctor_id
+            ).count()
+            appt.queue_number = same_day_count + 1
+            
+            db.session.commit()
+            flash('Đã duyệt và sắp xếp lịch khám thành công!', 'success')
+            return redirect(url_for('receptionist.appointments'))
+            
+    doctors = Doctor.query.all()
+    return render_template('receptionist/approve_appointment.html', appt=appt, doctors=doctors)

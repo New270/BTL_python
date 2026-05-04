@@ -4,8 +4,15 @@
 
 {% block content %}
 <div class="card">
-  <div class="card-header">
-    <i class="fas fa-list" style="color:var(--primary)"></i> <span class="card-title">Lịch sử đặt khám</span>
+  <div class="card-header" style="justify-content: space-between;">
+    <div>
+      <i class="fas fa-list" style="color:var(--primary)"></i> 
+      <span class="card-title">Lịch sử đặt khám</span>
+    </div>
+    <!-- NÚT ĐẶT LỊCH KHÁM ĐÃ ĐƯỢC THÊM VÀO ĐÂY -->
+    <a href="{{ url_for('patient.new_appointment') }}" class="btn btn-primary btn-sm">
+      <i class="fas fa-calendar-plus"></i> Đặt lịch khám
+    </a>
   </div>
   <div class="table-wrap">
     <table>

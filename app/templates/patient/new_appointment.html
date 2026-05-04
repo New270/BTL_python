@@ -1,0 +1,34 @@
+{% extends 'shared/base.html' %}
+{% block title %}Đặt lịch khám — {{ patient.full_name }}{% endblock %}
+{% block page_title %}Đăng ký khám bệnh{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 600px; margin: 0 auto;">
+    <div class="card-header">
+        <i class="fas fa-calendar-plus" style="color: var(--primary)"></i>
+        <span class="card-title">Yêu cầu đặt lịch</span>
+    </div>
+    <div class="card-body">
+        <form method="POST">
+            <div class="form-group">
+                <label>Ngày muốn khám <span class="req">*</span></label>
+                <!-- Dùng type="date" để bệnh nhân chỉ chọn được ngày -->
+                <input type="date" name="desired_date" required min="{{ current_date }}">
+            </div>
+            <div class="form-group">
+                <label>Triệu chứng / Lý do khám</label>
+                <textarea name="chief_complaint" rows="4" placeholder="Ví dụ: Đau bụng, sốt cao..."></textarea>
+            </div>
+            
+            <div class="alert alert-info mt-3" style="font-size: 0.9rem;">
+                <i class="fas fa-info-circle"></i> Yêu cầu của bạn sẽ được gửi đến Lễ tân. Lễ tân sẽ sắp xếp giờ khám cụ thể và Bác sĩ phù hợp, sau đó cập nhật lại lịch cho bạn.
+            </div>
+
+            <div style="text-align: right; margin-top: 20px;">
+                <a href="{{ url_for('patient.appointments') }}" class="btn btn-outline">Hủy</a>
+                <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Gửi yêu cầu</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

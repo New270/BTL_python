@@ -1,0 +1,49 @@
+{% extends 'shared/base.html' %}
+{% block title %}Duyệt lịch hẹn{% endblock %}
+{% block page_title %}Xử lý yêu cầu đặt lịch{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 600px;">
+    <div class="card-header">
+        <span class="card-title">Sắp xếp lịch khám cho: {{ appt.patient.full_name }}</span>
+    </div>
+    <div class="card-body">
+        <div style="background: var(--bg); padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+            <strong>Ngày yêu cầu:</strong> {{ appt.scheduled_at.strftime('%d/%m/%Y') }}<br>
+            <strong>Triệu chứng:</strong> {{ appt.chief_complaint or 'Không có' }}
+        </div>
+        
+        <form method="POST">
+            <div class="form-group">
+                <label>Chọn Bác sĩ phụ trách <span class="req">*</span></label>
+                <select name="doctor_id" required>
+                    <option value="">-- Chọn bác sĩ --</option>
+                    {% for doc in doctors %}
+                    <option value="{{ doc.id }}">{{ doc.full_name }} ({{ doc.specialty }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Xếp giờ khám <span class="req">*</span></label>
+                <input type="time" name="scheduled_time" required>
+            </div>
+            
+            <div style="display:flex; justify-content:space-between; margin-top:24px;">
+                <!-- Nút từ chối sẽ gọi API hủy lịch bạn đã làm sẵn -->
+                <button type="button" onclick="document.getElementById('cancel-form').submit();" class="btn btn-danger btn-outline">
+                    <i class="fas fa-times"></i> Từ chối
+                </button>
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-check"></i> Phê duyệt & Đặt lịch
+                </button>
+            </div>
+        </form>
+        
+        <!-- Form ngầm để xử lý từ chối -->
+        <form id="cancel-form" method="POST" action="{{ url_for('receptionist.cancel_appointment', appt_id=appt.id) }}" style="display:none;">
+            <input type="hidden" name="cancel_reason" value="Lễ tân từ chối xếp lịch">
+        </form>
+    </div>
+</div>
+{% endblock %}

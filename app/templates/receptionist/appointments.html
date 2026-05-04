@@ -6,7 +6,7 @@
 <div class="card mb-4">
   <div class="card-body" style="padding:16px 22px; display:flex; justify-content:space-between; align-items:center">
     <form method="GET" style="display:flex; gap:12px; align-items:center">
-      <label style="margin:0">Chọn ngày:</label>
+      <label style="margin:0; font-weight: 600; color: var(--text-muted)">Chọn ngày:</label>
       <input type="date" name="date" value="{{ filter_date.strftime('%Y-%m-%d') }}" onchange="this.form.submit()" style="width:auto; padding:6px 12px">
     </form>
     <a href="{{ url_for('receptionist.new_appointment') }}" class="btn btn-primary">
@@ -38,32 +38,57 @@
         <tr>
           <td>
             <div style="font-weight:700; font-size:1.1rem; color:var(--primary)">{{ a.queue_number or '—' }}</div>
-            <div class="text-sm text-muted">{{ a.scheduled_at.strftime('%H:%M') }}</div>
+            <div class="text-sm text-muted">
+                {% if a.status == 'pending' %} Chờ xếp giờ {% else %} {{ a.scheduled_at.strftime('%H:%M') }} {% endif %}
+            </div>
           </td>
           <td>
             <div style="font-weight:600">{{ a.patient.full_name }}</div>
             <div class="patient-code" style="font-size:.75rem; display:inline-block">{{ a.patient.patient_code }}</div>
           </td>
-          <td>{{ a.doctor.full_name }}</td>
+          <td>
+             {% if a.doctor %} 
+               {{ a.doctor.full_name }} 
+             {% else %} 
+               <span class="text-muted" style="font-style: italic;">Chưa phân công</span> 
+             {% endif %}
+          </td>
           <td><span class="badge badge-muted">{{ a.type_display }}</span></td>
           <td>
             {% if a.status == 'completed' %}<span class="badge badge-success">Xong</span>
             {% elif a.status == 'in_progress' %}<span class="badge badge-info">Đang khám</span>
             {% elif a.status == 'confirmed' %}<span class="badge badge-warning">Đã check-in</span>
             {% elif a.status == 'cancelled' %}<span class="badge badge-danger">Đã hủy</span>
+            {% elif a.status == 'pending' %}<span class="badge" style="background:#fef3c7; color:#d97706; font-weight: 600;"><i class="fas fa-clock"></i> Chờ duyệt</span>
             {% else %}<span class="badge badge-muted">Chờ khám</span>
             {% endif %}
           </td>
           <td>
-            {% if a.status == 'pending' or a.status == 'confirmed' %}
-            <form method="POST" action="{{ url_for('receptionist.checkin', appt_id=a.id) }}" style="display:inline">
-              <button class="btn btn-outline btn-sm" title="Xác nhận đến khám"><i class="fas fa-check"></i> Check-in</button>
-            </form>
-            <form method="POST" action="{{ url_for('receptionist.cancel_appointment', appt_id=a.id) }}" style="display:inline" onsubmit="return confirm('Bạn có chắc chắn muốn hủy lịch này?');">
-              <button class="btn btn-danger btn-sm btn-icon" title="Hủy lịch"><i class="fas fa-times"></i></button>
-            </form>
+            {% if a.status == 'pending' %}
+              <!-- Nút Duyệt lịch dành cho những yêu cầu mới do Bệnh nhân tự đặt -->
+              <div style="display:flex; gap: 5px;">
+                <a href="{{ url_for('receptionist.approve_appointment', appt_id=a.id) }}" class="btn btn-primary btn-sm">
+                  <i class="fas fa-calendar-check"></i> Duyệt
+                </a>
+                <form method="POST" action="{{ url_for('receptionist.cancel_appointment', appt_id=a.id) }}" style="display:inline" onsubmit="return confirm('Bạn có chắc chắn muốn từ chối lịch này?');">
+                  <input type="hidden" name="cancel_reason" value="Lễ tân từ chối">
+                  <button class="btn btn-outline btn-sm btn-icon" title="Từ chối"><i class="fas fa-times"></i></button>
+                </form>
+              </div>
+            
+            {% elif a.status == 'confirmed' %}
+              <!-- Nút Check-in dành cho những bệnh nhân đã được duyệt và đến đúng giờ -->
+              <div style="display:flex; gap: 5px;">
+                <form method="POST" action="{{ url_for('receptionist.checkin', appt_id=a.id) }}" style="display:inline">
+                  <button class="btn btn-outline btn-sm" title="Xác nhận đến khám"><i class="fas fa-check"></i> Check-in</button>
+                </form>
+                <form method="POST" action="{{ url_for('receptionist.cancel_appointment', appt_id=a.id) }}" style="display:inline" onsubmit="return confirm('Bạn có chắc chắn muốn hủy lịch này?');">
+                  <button class="btn btn-danger btn-sm btn-icon" title="Hủy lịch"><i class="fas fa-times"></i></button>
+                </form>
+              </div>
+            
             {% else %}
-            —
+              <span class="text-muted" style="font-size: 0.9rem;">—</span>
             {% endif %}
           </td>
         </tr>
